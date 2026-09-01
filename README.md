@@ -98,9 +98,9 @@ The brief flagged these as "ask before proceeding." Given no answer yet,
 sensible defaults were chosen so the system is usable end-to-end — flag
 if any should change:
 
-1. **Exact check times/timezone** → defaulted to a UTC cron approximating
-   8am/6pm UK time (drifts to 9am/7pm during British Summer Time — see the
-   comment in `price-check.yml`).
+1. **Exact check times/timezone** → confirmed as 8am and 8pm UK time. Cron
+   is UTC and can't shift with UK clocks, so it drifts to 7am/7pm UK time
+   during British Summer Time — see the comment in `price-check.yml`.
 2. **Re-alert behaviour** → currently alerts on **every** run a product is
    at/under target (simplest, no extra state to manage). If you'd rather
    have "only once when it first drops" or a daily digest, that needs a

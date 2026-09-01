@@ -2,13 +2,11 @@ name: Wholesale Price Check
 
 on:
   schedule:
-    # Approximation of "8am and 6pm UK time" (exact times weren't confirmed
-    # — see README's "Open questions" section). Cron runs in UTC and can't
-    # shift with UK clocks, so these land at 8am/6pm during GMT (late Oct -
-    # late Mar) and 9am/7pm during BST (late Mar - late Oct). Adjust once
-    # exact times are confirmed.
+    # 8am and 8pm UK time. Cron runs in UTC and can't shift with UK clocks,
+    # so these land exactly at 8am/8pm during GMT (late Oct - late Mar) and
+    # drift an hour early, to 7am/7pm, during BST (late Mar - late Oct).
     - cron: '0 8 * * *'
-    - cron: '0 18 * * *'
+    - cron: '0 20 * * *'
   workflow_dispatch: {}
 
 jobs:
