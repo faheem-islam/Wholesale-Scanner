@@ -1,0 +1,40 @@
+name: Wholesale Price Check
+
+on:
+  schedule:
+    # Approximation of "8am and 6pm UK time" (exact times weren't confirmed
+    # — see README's "Open questions" section). Cron runs in UTC and can't
+    # shift with UK clocks, so these land at 8am/6pm during GMT (late Oct -
+    # late Mar) and 9am/7pm during BST (late Mar - late Oct). Adjust once
+    # exact times are confirmed.
+    - cron: '0 8 * * *'
+    - cron: '0 18 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  check-prices:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run price check
+        env:
+          EUROLOTS_USERNAME: ${{ secrets.EUROLOTS_USERNAME }}
+          EUROLOTS_PASSWORD: ${{ secrets.EUROLOTS_PASSWORD }}
+          MERKANDI_USERNAME: ${{ secrets.MERKANDI_USERNAME }}
+          MERKANDI_PASSWORD: ${{ secrets.MERKANDI_PASSWORD }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+        run: python main.py
