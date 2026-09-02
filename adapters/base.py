@@ -16,7 +16,13 @@ from playwright.sync_api import Page
 
 @dataclass
 class Listing:
-    """One scraped price record, matching the shape required by the spec."""
+    """One scraped price record, matching the shape required by the spec.
+
+    Prices are always in GBP, since that's the currency target_price uses
+    in products.csv. A wholesaler that bills in a different currency is
+    responsible for converting before returning Listing objects — see
+    adapters/eurolots.py (EUR) for an example, via currency.py.
+    """
 
     product_name: str
     price_ex_vat: float

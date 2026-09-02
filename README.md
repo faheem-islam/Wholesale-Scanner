@@ -76,20 +76,37 @@ No paid services are used anywhere in this setup — SMTP works with a free
 Gmail/Outlook account or any free-tier transactional provider, and GitHub
 Actions' free tier easily covers two runs a day.
 
+## Currency and VAT
+
+- `products.csv`'s `target_price` is in **GBP**. Eurolots bills in **EUR**,
+  so `adapters/eurolots.py` converts scraped EUR prices to GBP before
+  returning them, using a live rate from `currency.py` (free, keyless
+  Frankfurter API). Every adapter is expected to return GBP — see the
+  `Listing` docstring in `adapters/base.py`.
+- Eurolots only shows the ex-VAT price on its item pages; the inc-VAT
+  figure is calculated in `adapters/eurolots.py` at a fixed **20%** (UK
+  standard rate). If Eurolots' actual VAT treatment differs, update
+  `VAT_RATE` there.
+
 ## Known limitations / before this is production-ready
 
-- **Selectors are unverified.** This project was built without network
-  access to eurolots.com or merkandi.co.uk, so the CSS selectors in
-  `adapters/eurolots.py` and `adapters/merkandi.py` (the `SELECTORS` dicts
-  at the top of each file) are best-effort guesses based on common
-  e-commerce markup, not confirmed against the real DOM. Before the first
-  real run: log into each site, run
-  `playwright codegen https://www.eurolots.com` (and the same for
-  Merkandi), and correct the selectors. The scraping logic around them
-  shouldn't need to change.
-- **Eurolots is assumed to have a `/search?q=` endpoint.** If it browses by
-  category instead, `fetch_listings()` in `adapters/eurolots.py` will need
-  a different lookup strategy per product.
+- **Eurolots' adapter is confirmed against the real site** (via Playwright
+  codegen) for: login fields, the logged-in marker, the search box/submit
+  button, the item page URL pattern (`/en/item/<slug>`), the product
+  title, the price text, and the SKU (read from a specs table row). Two
+  things are still unconfirmed and should be sanity-checked on the first
+  real run — see the comments at the top of `adapters/eurolots.py`:
+  - the exact click path to open the login form (a popup can appear first)
+  - the search *results* page's structure — the code picks the first link
+    matching the confirmed `/en/item/` URL pattern, which should be
+    resilient to markup changes, but hasn't been exercised against a real
+    results page yet.
+- **Merkandi's adapter is still unverified** — its `SELECTORS` dict is a
+  best-effort guess, not confirmed against the real DOM (this environment
+  had no network access to merkandi.co.uk while building it). Same
+  process as Eurolots: `playwright codegen https://merkandi.co.uk` while
+  logged in, then correct `SELECTORS` in `adapters/merkandi.py` — the
+  logic around it shouldn't need to change.
 - **`products.csv`** currently holds 3 placeholder rows; swap in the real list.
 
 ## Open questions from the brief (defaults assumed for now)
