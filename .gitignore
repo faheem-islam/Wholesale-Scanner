@@ -13,5 +13,8 @@ venv/
 /test-results/
 /playwright-report/
 
+# Generated dashboard (published to GitHub Pages by CI, not committed)
+/site/
+
 # OS
 .DS_Store

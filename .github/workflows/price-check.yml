@@ -9,6 +9,18 @@ on:
     - cron: '0 20 * * *'
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time; let an in-progress one finish
+# rather than cancelling it (a scheduled run following close behind a
+# manual one shouldn't clobber it mid-deploy).
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   check-prices:
     runs-on: ubuntu-latest
@@ -36,3 +48,26 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
         run: python main.py
+
+      # main.py writes site/index.html before it exits, even on a failed
+      # run (a wholesaler failure just makes it exit non-zero afterwards),
+      # so the dashboard should still get uploaded either way.
+      - name: Upload dashboard artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy-dashboard:
+    needs: check-prices
+    # Deploy even if check-prices reported a failure (so the dashboard
+    # shows *why* it failed) — just not if the run was cancelled outright.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

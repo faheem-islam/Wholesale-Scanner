@@ -31,10 +31,13 @@ def _name_similarity(a: str, b: str) -> float:
     return SequenceMatcher(None, a.strip().lower(), b.strip().lower()).ratio() * 100
 
 
-def match_listings(target_products: list[dict], listings: list[Listing]) -> list[Match]:
+def match_listings(
+    target_products: list[dict], listings: list[Listing]
+) -> tuple[list[Match], list[dict]]:
     """Match each target product (already filtered to one wholesaler) against
-    that wholesaler's scraped listings."""
+    that wholesaler's scraped listings. Returns (matches, unmatched_products)."""
     matches: list[Match] = []
+    unmatched: list[dict] = []
 
     for target in target_products:
         target_id = (target.get("identifier") or "").strip().lower()
@@ -66,5 +69,6 @@ def match_listings(target_products: list[dict], listings: list[Listing]) -> list
                 target.get("identifier") or "none",
                 target.get("wholesaler"),
             )
+            unmatched.append(target)
 
-    return matches
+    return matches, unmatched

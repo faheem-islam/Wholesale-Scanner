@@ -1,6 +1,6 @@
 """Entry point: log into each wholesaler, scrape its target products, match
-against products.csv, and email Faheem when something is at or below target
-price.
+against products.csv, email Faheem when something is at or below target
+price, and render the site/ dashboard published to GitHub Pages.
 
 Usage:
     python main.py
@@ -22,6 +22,7 @@ from collections import defaultdict
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright
 
+import dashboard
 from adapters.base import WholesalerAdapter
 from adapters.eurolots import EurolotsAdapter
 from adapters.merkandi import MerkandiAdapter
@@ -63,6 +64,8 @@ def main() -> int:
     for row in products:
         products_by_wholesaler[row["wholesaler"]].append(row)
 
+    all_matches = []
+    all_unmatched = []
     hits = []
     failures: list[str] = []
 
@@ -94,7 +97,9 @@ def main() -> int:
             try:
                 adapter.login(username, password)
                 listings = adapter.fetch_listings(target_products)
-                matches = match_listings(target_products, listings)
+                matches, unmatched = match_listings(target_products, listings)
+                all_matches.extend(matches)
+                all_unmatched.extend(unmatched)
                 under_target = [
                     m for m in matches if m.listing.price_ex_vat <= m.target_product["target_price"]
                 ]
@@ -110,6 +115,8 @@ def main() -> int:
                 context.close()
 
         browser.close()
+
+    dashboard.render(all_matches, all_unmatched, failures)
 
     if hits:
         subject, body = format_alert_email(hits, failures)

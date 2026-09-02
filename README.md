@@ -18,6 +18,22 @@ found at or below its target price. Built per `WHOLESALER_PRICE_MONITOR_BRIEF.md
 5. A wholesaler that fails (site down, layout changed) is logged and
    skipped — it doesn't stop the other wholesalers, but it does make the
    run exit non-zero so it's visible in the GitHub Actions tab.
+6. `dashboard.py` renders every checked product (not just hits) to
+   `site/index.html`, which the workflow publishes to GitHub Pages —
+   see "Dashboard" below.
+
+## Dashboard
+
+Every run publishes a results page to GitHub Pages — no separate hosting,
+no login, just a URL: `https://faheem-islam.github.io/Wholesale-Scanner/`.
+It shows every target product, the price found vs. target, VAT-inclusive
+price where available, a link to the listing, and any unmatched products
+or wholesaler failures from that run.
+
+**One-time setup** (do this once, in the GitHub website): go to the
+repo's **Settings → Pages**, and under "Build and deployment" set
+**Source** to **GitHub Actions**. That's it — the workflow handles
+everything else, including the first deploy on its next run.
 
 ## Project layout
 
@@ -27,11 +43,13 @@ adapters/
   eurolots.py   Eurolots.com adapter (single catalog)
   merkandi.py   Merkandi.co.uk adapter (marketplace keyword search)
 config.py       non-secret tunables (thresholds, price ceiling, default alert address)
+currency.py     EUR -> GBP conversion (Frankfurter API) for non-GBP wholesalers
 matcher.py      identifier/fuzzy-name matching against products.csv
 notifier.py     SMTP email formatting + sending
-main.py         orchestrates: scrape -> match -> alert
+dashboard.py    renders site/index.html, published to GitHub Pages
+main.py         orchestrates: scrape -> match -> alert -> dashboard
 products.csv    target product list (edit this to add/remove tracked products)
-.github/workflows/price-check.yml   twice-daily GitHub Actions cron
+.github/workflows/price-check.yml   twice-daily GitHub Actions cron + Pages deploy
 ```
 
 Adding an 11th wholesaler later means adding `adapters/<name>.py` that
