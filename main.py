@@ -69,8 +69,12 @@ def main() -> int:
     hits = []
     failures: list[str] = []
 
+    # Headless by default (required in GitHub Actions); set HEADLESS=false
+    # locally to watch the browser live while debugging an adapter.
+    headless = os.environ.get("HEADLESS", "true").strip().lower() != "false"
+
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
+        browser = pw.chromium.launch(headless=headless)
 
         for wholesaler_name, target_products in products_by_wholesaler.items():
             adapter_cls = ADAPTERS.get(wholesaler_name)
