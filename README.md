@@ -48,7 +48,9 @@ Example Product One,SKU-0001,9.99,eurolots
 
 - `identifier` is the SKU/product code, if the wholesaler exposes one.
   Leave it blank to force fuzzy name matching (see the third example row).
-- `wholesaler` must be `eurolots` or `merkandi` (matches the adapter names).
+- `wholesaler` must be `eurolots` or `merkandi` (matches the adapter names)
+  — though `merkandi` is currently unused, see "Status: Merkandi paused"
+  below.
 - The three rows currently in the file are placeholders — replace them with
   the real ~20-product list.
 
@@ -87,6 +89,26 @@ Actions' free tier easily covers two runs a day.
   figure is calculated in `adapters/eurolots.py` at a fixed **20%** (UK
   standard rate). If Eurolots' actual VAT treatment differs, update
   `VAT_RATE` there.
+
+## Status: Merkandi paused
+
+Merkandi's login sits behind a Cloudflare Turnstile CAPTCHA on every
+attempt (not just after a failed one), which is specifically built to
+detect automated/headless browsers — the kind GitHub Actions runs. That's
+a real decision to make (reuse a manually-created session, pay for a
+CAPTCHA-solving service, or skip Merkandi automation), not something to
+route around silently, so it's on hold for now.
+
+The system currently runs **Eurolots only** — `products.csv` has no
+Merkandi rows, so `main.py` never touches `adapters/merkandi.py`. Nothing
+else had to change: adapters are self-contained by design, so this is a
+data change, not a code change. To bring Merkandi back once the login
+question is settled:
+1. Add its rows back to `products.csv` (`wholesaler` = `merkandi`).
+2. Verify `adapters/merkandi.py`'s `SELECTORS` against the live site (see
+   below — they're still unconfirmed guesses).
+3. Add the `MERKANDI_USERNAME`/`MERKANDI_PASSWORD` secrets and implement
+   whichever login approach gets decided on.
 
 ## Known limitations / before this is production-ready
 
