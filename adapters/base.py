@@ -29,6 +29,7 @@ class Listing:
     url: str
     identifier: Optional[str] = None
     price_inc_vat: Optional[float] = None
+    stock: Optional[int] = None
 
 
 class WholesalerAdapter(ABC):

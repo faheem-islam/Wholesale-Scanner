@@ -64,6 +64,14 @@ def _parse_eur_amount(text: str) -> float:
     return float(normalised)
 
 
+def _parse_stock(text: str | None) -> int | None:
+    """'893 pc(s)' -> 893."""
+    if not text:
+        return None
+    match = re.search(r"\d+", text.replace(",", ""))
+    return int(match.group()) if match else None
+
+
 class EurolotsAdapter(WholesalerAdapter):
     name = "eurolots"
 
@@ -134,6 +142,7 @@ class EurolotsAdapter(WholesalerAdapter):
                 price_inc_vat_eur = round(price_ex_vat_eur * (1 + VAT_RATE), 2)
 
                 identifier = self._spec_value(page, "SKU")
+                stock = _parse_stock(self._spec_value(page, "In Stock"))
 
                 listings.append(
                     Listing(
@@ -142,6 +151,7 @@ class EurolotsAdapter(WholesalerAdapter):
                         price_inc_vat=self._to_gbp(price_inc_vat_eur),
                         url=product_url,
                         identifier=identifier,
+                        stock=stock,
                     )
                 )
             except Exception:
